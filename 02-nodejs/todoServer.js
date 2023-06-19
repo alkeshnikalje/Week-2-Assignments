@@ -39,11 +39,61 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-const express = require('express');
-const bodyParser = require('body-parser');
-
-const app = express();
-
-app.use(bodyParser.json());
-
-module.exports = app;
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  
+  const app = express();
+  
+  app.use(bodyParser.json());
+  
+  const todos = [];
+  
+  app.post('/todos', (req, res) => {
+    let newTodo = {
+      id: Math.floor(Math.random() * 1000000),
+      title: req.body.title,
+      description: req.body.description
+    };
+    todos.push(newTodo);
+    res.status(201).json(newTodo);
+  });
+  
+  app.delete('/todos/:id', (req, res) => {
+    let index = todos.findIndex(t => t.id === parseInt(req.params.id));
+    if (index > todos.length - 1) {
+      res.status(404).send();
+    } else {
+      todos.splice(index, 1);
+      res.status(200).send();
+    }
+  });
+  
+  app.put('/todos/:id', (req, res) => {
+    let index = todos.findIndex(t => t.id === parseInt(req.params.id));
+    if (index > todos.length - 1) {
+      res.status(404).send();
+    } else {
+      todos[index].title = req.body.title;
+      todos[index].description = req.body.description;
+      res.json(todos[index]);
+    }
+  });
+  
+  app.get('/todos/:id', (req, res) => {
+    currtodo = todos.find(t=>t.id === parseInt(req.params.id))
+    if(!currtodo){
+      res.status(404).send()
+    }else{
+      res.json(currtodo)
+    }
+  });
+  
+  app.get('/todos', (req, res) => {
+    res.json(todos);
+  });
+  
+  app.use((req, res, next) => {
+    res.status(404).send();
+  });
+  
+  module.exports = app;
