@@ -29,9 +29,78 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
-const express = require("express")
+const express = require("express");
+const { use } = require("./fileServer");
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+app.use(express.json());
+const users = []
+app.post('/signup',(req,res)=>{
+    let newUser = req.body;
+    let userDoesNotExist = true;
+    for(let i = 0; i < newUser.length; i++){
+      if(users[i].email === newUser.email){
+        userDoesNotExist = false;
+        break;
+      }
+    }
+    if(userDoesNotExist){
+      users.push(newUser);
+      res.status(201).send("Signup successful");
+    }else{
+      res.status(400).send()
+    }
+});
+app.post('/login',(req,res)=>{
+  let user = req.body;
+  let existingUser = null;
+  for(let i = 0; i < users.length; i++){
+    if(users[i].email === user.email && users[i].password === user.password){
+          existingUser = users[i];
+          break;
+    }
+  }
+  if(existingUser){
+    res.json({
+      firstName : existingUser.firstName,
+      lastName : existingUser.lastName,
+      email : existingUser.email
+    })
+  }else{
+    res.status(401).send();
+  }
+
+});
+
+app.get('/data',(req,res)=>{
+  let email = req.headers.email;
+  let password = req.headers.password;
+  let userExists = null;
+  for(let i = 0 ; i < users.length; i++){
+    if(users[i].email === email && users[i].password === password){
+      userExists = users[i];
+      break;
+    }
+  }
+
+  if (userExists) {
+    let userToReturn = {
+      firstName: userExists.firstName,
+      lastName: userExists.lastName,
+      email: userExists.email,
+    };
+
+    res.status(200).json({
+      users: [userToReturn],
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+
+
+
 
 module.exports = app;
